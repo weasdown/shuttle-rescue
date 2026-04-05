@@ -1,0 +1,192 @@
+%General Mission Analysis Tool(GMAT) Script
+%Created: 2026-01-08 16:25:41
+
+
+%----------------------------------------
+%---------- Spacecraft
+%----------------------------------------
+
+Create Spacecraft Buran_placeholder;
+Buran_placeholder.DateFormat = UTCGregorian;
+Buran_placeholder.Epoch = '24 Dec 1998 03:40:53.615';
+Buran_placeholder.CoordinateSystem = EarthMJ2000Eq;
+Buran_placeholder.DisplayStateType = ModifiedKeplerian;
+Buran_placeholder.RadPer = 6377.999999999997;
+Buran_placeholder.RadApo = 6457.999999999996;
+Buran_placeholder.INC = 51.59999999999999;
+Buran_placeholder.RAAN = 360;  % TODO calculate Buran RAAN
+Buran_placeholder.AOP = 80.00000000000179;
+Buran_placeholder.TA = 179.0000000000026;
+Buran_placeholder.DryMass = 850;
+Buran_placeholder.Cd = 2.2;
+Buran_placeholder.Cr = 1.8;
+Buran_placeholder.DragArea = 15;
+Buran_placeholder.SRPArea = 1;
+Buran_placeholder.SPADDragScaleFactor = 1;
+Buran_placeholder.SPADSRPScaleFactor = 1;
+Buran_placeholder.AtmosDensityScaleFactor = 1;
+Buran_placeholder.ExtendedMassPropertiesModel = 'None';
+Buran_placeholder.NAIFId = -10005001;
+Buran_placeholder.NAIFIdReferenceFrame = -9005001;
+Buran_placeholder.OrbitColor = Blue;
+Buran_placeholder.TargetColor = DimGray;
+Buran_placeholder.OrbitErrorCovariance = [ 1e+70 0 0 0 0 0 ; 0 1e+70 0 0 0 0 ; 0 0 1e+70 0 0 0 ; 0 0 0 1e+70 0 0 ; 0 0 0 0 1e+70 0 ; 0 0 0 0 0 1e+70 ];
+Buran_placeholder.CdSigma = 1e+70;
+Buran_placeholder.CrSigma = 1e+70;
+Buran_placeholder.Id = 'SatId';
+Buran_placeholder.Attitude = CoordinateSystemFixed;
+Buran_placeholder.SPADSRPInterpolationMethod = Bilinear;
+Buran_placeholder.SPADSRPScaleFactorSigma = 1e+70;
+Buran_placeholder.SPADDragInterpolationMethod = Bilinear;
+Buran_placeholder.SPADDragScaleFactorSigma = 1e+70;
+Buran_placeholder.AtmosDensityScaleFactorSigma = 1e+70;
+Buran_placeholder.ModelFile = 'aura.3ds';
+Buran_placeholder.ModelOffsetX = 0;
+Buran_placeholder.ModelOffsetY = 0;
+Buran_placeholder.ModelOffsetZ = 0;
+Buran_placeholder.ModelRotationX = 0;
+Buran_placeholder.ModelRotationY = 0;
+Buran_placeholder.ModelRotationZ = 0;
+Buran_placeholder.ModelScale = 1;
+Buran_placeholder.AttitudeDisplayStateType = 'Quaternion';
+Buran_placeholder.AttitudeRateDisplayStateType = 'AngularVelocity';
+Buran_placeholder.AttitudeCoordinateSystem = EarthMJ2000Eq;
+Buran_placeholder.EulerAngleSequence = '321';
+
+
+
+%----------------------------------------
+%---------- ForceModels
+%----------------------------------------
+
+Create ForceModel DefaultProp_ForceModel;
+DefaultProp_ForceModel.CentralBody = Earth;
+DefaultProp_ForceModel.PrimaryBodies = {Earth};
+DefaultProp_ForceModel.Drag = None;
+DefaultProp_ForceModel.SRP = Off;
+DefaultProp_ForceModel.RelativisticCorrection = Off;
+DefaultProp_ForceModel.ErrorControl = RSSStep;
+DefaultProp_ForceModel.GravityField.Earth.Degree = 4;
+DefaultProp_ForceModel.GravityField.Earth.Order = 4;
+DefaultProp_ForceModel.GravityField.Earth.StmLimit = 100;
+DefaultProp_ForceModel.GravityField.Earth.PotentialFile = 'JGM2.cof';
+DefaultProp_ForceModel.GravityField.Earth.TideModel = 'None';
+
+%----------------------------------------
+%---------- Propagators
+%----------------------------------------
+
+Create Propagator DefaultProp;
+DefaultProp.FM = DefaultProp_ForceModel;
+DefaultProp.Type = RungeKutta89;
+DefaultProp.InitialStepSize = 60;
+DefaultProp.Accuracy = 9.999999999999999e-12;
+DefaultProp.MinStep = 0.001;
+DefaultProp.MaxStep = 2700;
+DefaultProp.MaxStepAttempts = 50;
+DefaultProp.StopIfAccuracyIsViolated = true;
+
+%----------------------------------------
+%---------- Burns
+%----------------------------------------
+
+Create ImpulsiveBurn DefaultIB;
+DefaultIB.CoordinateSystem = Local;
+DefaultIB.Origin = Earth;
+DefaultIB.Axes = VNB;
+DefaultIB.Element1 = 0.1;
+DefaultIB.Element2 = 0;
+DefaultIB.Element3 = 0;
+DefaultIB.DecrementMass = false;
+DefaultIB.Isp = 300;
+DefaultIB.GravitationalAccel = 9.81;
+
+%----------------------------------------
+%---------- Solvers
+%----------------------------------------
+
+Create FminconOptimizer DefaultSQP;
+DefaultSQP.ShowProgress = true;
+DefaultSQP.ReportStyle = Normal;
+DefaultSQP.ReportFile = 'FminconOptimizerDefaultSQP.data';
+DefaultSQP.MaximumIterations = 25;
+DefaultSQP.DiffMaxChange = '0.1000';
+DefaultSQP.DiffMinChange = '1.0000e-08';
+DefaultSQP.MaxFunEvals = '1000';
+DefaultSQP.TolX = '1.0000e-04';
+DefaultSQP.TolFun = '1.0000e-04';
+DefaultSQP.TolCon = '1.0000e-04';
+
+Create DifferentialCorrector DefaultDC;
+DefaultDC.ShowProgress = true;
+DefaultDC.ReportStyle = Normal;
+DefaultDC.ReportFile = 'DifferentialCorrectorDefaultDC.data';
+DefaultDC.MaximumIterations = 25;
+DefaultDC.DerivativeMethod = ForwardDifference;
+DefaultDC.Algorithm = NewtonRaphson;
+
+%----------------------------------------
+%---------- Subscribers
+%----------------------------------------
+
+Create OrbitView DefaultOrbitView;
+DefaultOrbitView.SolverIterations = Current;
+DefaultOrbitView.UpperLeft = [ 0.001830663615560641 0 ];
+DefaultOrbitView.Size = [ 0.5002288329519451 0.5512820512820513 ];
+DefaultOrbitView.RelativeZOrder = 752;
+DefaultOrbitView.Maximized = false;
+DefaultOrbitView.Add = {Buran_placeholder, Earth};
+DefaultOrbitView.CoordinateSystem = EarthMJ2000Eq;
+DefaultOrbitView.DrawObject = [ true true ];
+DefaultOrbitView.DataCollectFrequency = 1;
+DefaultOrbitView.UpdatePlotFrequency = 50;
+DefaultOrbitView.NumPointsToRedraw = 0;
+DefaultOrbitView.ShowPlot = true;
+DefaultOrbitView.MaxPlotPoints = 20000;
+DefaultOrbitView.ShowLabels = true;
+DefaultOrbitView.ViewPointReference = Earth;
+DefaultOrbitView.ViewPointVector = [ 30000 0 0 ];
+DefaultOrbitView.ViewDirection = Earth;
+DefaultOrbitView.ViewScaleFactor = 1;
+DefaultOrbitView.ViewUpCoordinateSystem = EarthMJ2000Eq;
+DefaultOrbitView.ViewUpAxis = Z;
+DefaultOrbitView.EclipticPlane = Off;
+DefaultOrbitView.XYPlane = On;
+DefaultOrbitView.WireFrame = Off;
+DefaultOrbitView.Axes = On;
+DefaultOrbitView.Grid = Off;
+DefaultOrbitView.SunLine = Off;
+DefaultOrbitView.UseInitialView = On;
+DefaultOrbitView.StarCount = 7000;
+DefaultOrbitView.EnableStars = On;
+DefaultOrbitView.EnableConstellations = On;
+
+Create GroundTrackPlot DefaultGroundTrackPlot;
+DefaultGroundTrackPlot.SolverIterations = Current;
+DefaultGroundTrackPlot.UpperLeft = [ 0.001830663615560641 0.5547785547785548 ];
+DefaultGroundTrackPlot.Size = [ 0.5002288329519451 0.5512820512820513 ];
+DefaultGroundTrackPlot.RelativeZOrder = 715;
+DefaultGroundTrackPlot.Maximized = false;
+DefaultGroundTrackPlot.Add = {Buran_placeholder};
+DefaultGroundTrackPlot.DataCollectFrequency = 1;
+DefaultGroundTrackPlot.UpdatePlotFrequency = 50;
+DefaultGroundTrackPlot.NumPointsToRedraw = 0;
+DefaultGroundTrackPlot.ShowPlot = true;
+DefaultGroundTrackPlot.MaxPlotPoints = 20000;
+DefaultGroundTrackPlot.CentralBody = Earth;
+DefaultGroundTrackPlot.TextureMap = 'ModifiedBlueMarble.jpg';
+
+
+%----------------------------------------
+%---------- Mission Sequence
+%----------------------------------------
+
+BeginMissionSequence;
+Propagate 'Prop to 80km apo' DefaultProp(Buran_placeholder) {Buran_placeholder.Earth.Apoapsis};
+
+Target DefaultDC {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
+   Vary 'Vary burn magnitude' DefaultDC(DefaultIB.Element1 = 150, {Perturbation = 0.001, Lower = 0.0, Upper = 300, MaxStep = 9.999999e300, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Maneuver 'Maneuver to 364km apo' DefaultIB(Buran_placeholder);
+   Propagate 'Prop to 364km apo' DefaultProp(Buran_placeholder) {Buran_placeholder.ElapsedSecs = 12000.0};
+   Achieve 'Achieve 364km apo' DefaultDC(Buran_placeholder.Earth.RMAG = 6742, {Tolerance = 0.01});
+EndTarget;  % For targeter DefaultDC
